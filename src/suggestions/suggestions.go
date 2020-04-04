@@ -4,26 +4,46 @@ import (
 	"regexp"
 	"sort"
 	"strings"
-	"unicode"
+	"unicode/utf8"
 )
 
+const ABC = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя"
+
 var words []string
-var wordMap map[int]map[rune]int
+var wordMap [][]uint8
 
-func LoadDict(data string) {
-	wordMap = map[int]map[rune]int{}
+func countLetters(w string) ([]uint8, bool) {
+	aCode, _ := utf8.DecodeRuneInString(ABC)
+	abcLen := utf8.RuneCountInString(ABC)
+	r := make([]uint8, abcLen)
 
-	words = strings.Split(data, "\n")
-	for i, w := range words {
-		words[i] = strings.ReplaceAll(w, "ё", "е")
-		w = words[i]
-		wordMap[i] = map[rune]int{}
-
-		for _, ch := range w {
-			wordMap[i][ch]++
+	ok := true
+	for _, ch := range w {
+		ind := int(ch) - int(aCode)
+		if ind < 0 || ind >= len(r) {
+			ok = false
+			continue
 		}
+		r[ind]++
 	}
 
+	return r, ok
+}
+
+func LoadDict(data string) {
+	dictWords := strings.Split(data, "\n")
+	words = make([]string, 0, len(dictWords))
+	wordMap = make([][]uint8, 0, len(dictWords))
+
+	for _, w := range dictWords {
+		w = strings.ToLower(strings.ReplaceAll(w, "ё", "е"))
+		if len(w) > 0 {
+			if m, ok := countLetters(w); ok {
+				words = append(words, string(w))
+				wordMap = append(wordMap, m)
+			}
+		}
+	}
 }
 
 // Match func
@@ -35,32 +55,29 @@ func Match(letters, pattern string) []string {
 		re = regexp.MustCompile(pattern)
 	}
 
-	needle := map[rune]int{}
+	needle, _ := countLetters(letters + pattern)
+	wildCartCount := 0
 	for _, ch := range letters {
-		needle[ch]++
-	}
-
-	for _, ch := range pattern {
-		if unicode.IsLetter(ch) {
-			needle[ch]++
+		if ch == '*' {
+			wildCartCount++
 		}
 	}
 
 	for i, m := range wordMap {
 		count := 0
 
-		if re != nil && !re.MatchString(words[i]) {
+		if re != nil && !re.MatchString((words[i])) {
 			continue
 		}
 
-		for ch, c := range m {
-			if c > needle[ch] {
+		for ind, c := range m {
+			if c > needle[ind] {
 				count++
 			}
 		}
 
-		if count <= needle['*'] {
-			r = append(r, words[i])
+		if count <= wildCartCount {
+			r = append(r, string(words[i]))
 		}
 	}
 
@@ -69,5 +86,4 @@ func Match(letters, pattern string) []string {
 	})
 
 	return r
-
 }
