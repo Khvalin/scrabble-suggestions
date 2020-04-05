@@ -72,7 +72,7 @@ func Match(letters, pattern string) []string {
 
 		for ind, c := range m {
 			if c > needle[ind] {
-				count++
+				count += int(c) - int(needle[ind])
 			}
 		}
 
