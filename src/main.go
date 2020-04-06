@@ -72,8 +72,13 @@ func main() {
 	variants := board.GetVariants(b)
 	regs := patterns.ConvertVariantsToRegexes(variants, utf8.RuneCountInString(settings.Hand))
 
+	if len(variants) == 0 {
+		regs = append(regs, "")
+	}
+
 	for _, p := range regs {
 		r := suggestions.Match(settings.Hand, p)
+
 		if len(r) > 0 {
 			fmt.Println(p, r)
 		}

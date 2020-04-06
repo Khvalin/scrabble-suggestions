@@ -18,7 +18,7 @@ func countLetters(w string) ([]uint8, bool) {
 	r := make([]uint8, abcLen)
 
 	ok := true
-	for _, ch := range w {
+	for _, ch := range []rune(w) {
 		ind := int(ch) - int(aCode)
 		if ind < 0 || ind >= len(r) {
 			ok = false
@@ -56,6 +56,7 @@ func Match(letters, pattern string) []string {
 	}
 
 	needle, _ := countLetters(letters + pattern)
+	patternMap, _ := countLetters(pattern)
 	wildCartCount := 0
 	for _, ch := range letters {
 		if ch == '*' {
@@ -64,19 +65,22 @@ func Match(letters, pattern string) []string {
 	}
 
 	for i, m := range wordMap {
+		var subsCount uint8
 		count := 0
 
 		for ind, c := range m {
 			if c > needle[ind] {
 				count += int(c) - int(needle[ind])
+			} else {
+				subsCount += c - patternMap[ind]
 			}
 		}
 
-		if count > wildCartCount {
+		if count > wildCartCount || subsCount == 0 {
 			continue
 		}
 
-		if re == nil || re.MatchString((words[i])) {
+		if re == nil || re.MatchString(words[i]) {
 			r = append(r, string(words[i]))
 		}
 	}

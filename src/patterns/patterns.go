@@ -1,6 +1,7 @@
 package patterns
 
 import (
+	"fmt"
 	"strings"
 	"unicode"
 )
@@ -34,21 +35,19 @@ func ConvertVariantsToRegexes(variants [][]rune, maxSubstitutions int) []string 
 			}
 		}
 
-		if c == 0 && l > 0 && r == len(v)-1 {
-			c++
-			v[l-1] = '.'
+		if c > maxSubstitutions {
+			continue
 		}
 
-		if c == 0 && l == 0 && r < len(v)-1 {
-			c++
-			v[r+1] = '.'
+		minLen := r - l + 1
+
+		if c == 0 {
+			minLen++
 		}
 
-		str := strings.ReplaceAll(string(v), "#", "(.?)")
+		str := strings.ReplaceAll(string(v), "#", ".?")
 
-		if c > 0 && c <= maxSubstitutions {
-			res = append(res, "^"+str+"$")
-		}
+		res = append(res, fmt.Sprintf("^(%s)$", str))
 	}
 
 	return res
