@@ -66,17 +66,17 @@ func Match(letters, pattern string) []string {
 	for i, m := range wordMap {
 		count := 0
 
-		if re != nil && !re.MatchString((words[i])) {
-			continue
-		}
-
 		for ind, c := range m {
 			if c > needle[ind] {
 				count += int(c) - int(needle[ind])
 			}
 		}
 
-		if count <= wildCartCount {
+		if count > wildCartCount {
+			continue
+		}
+
+		if re == nil || re.MatchString((words[i])) {
 			r = append(r, string(words[i]))
 		}
 	}
