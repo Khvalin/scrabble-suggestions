@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 	"unicode"
 	"unicode/utf8"
 
@@ -56,6 +57,7 @@ func loadSettings(settingsFileName string) *settings {
 	var s settings
 	e := json.Unmarshal(settingsData, &s)
 	check(e)
+	s.Hand = strings.ToLower(s.Hand)
 
 	return &s
 }
