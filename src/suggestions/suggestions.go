@@ -2,9 +2,10 @@ package suggestions
 
 import (
 	"regexp"
-	"sort"
 	"strings"
 	"unicode/utf8"
+
+	"github.com/Khvalin/scrabble-suggestions/src/types"
 )
 
 const ABC = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя"
@@ -47,8 +48,8 @@ func LoadDict(data string) {
 }
 
 // Match func
-func Match(letters, pattern string) []string {
-	r := []string{}
+func Match(letters, pattern string) []types.MatchResult {
+	var res []types.MatchResult
 
 	var re *regexp.Regexp
 	if len(pattern) > 0 {
@@ -81,13 +82,9 @@ func Match(letters, pattern string) []string {
 		}
 
 		if re == nil || re.MatchString(words[i]) {
-			r = append(r, string(words[i]))
+			res = append(res, types.MatchResult{Word: words[i], SubtitutionsCount: int(subsCount)})
 		}
 	}
 
-	sort.Slice(r, func(i, j int) bool {
-		return len(r[i]) < len(r[j])
-	})
-
-	return r
+	return res
 }

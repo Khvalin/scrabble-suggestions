@@ -1,7 +1,6 @@
 package main
 
 import (
-
 	// standard library
 
 	"encoding/json"
@@ -13,6 +12,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/Khvalin/scrabble-suggestions/src/board"
+	"github.com/Khvalin/scrabble-suggestions/src/output"
 	"github.com/Khvalin/scrabble-suggestions/src/patterns"
 	"github.com/Khvalin/scrabble-suggestions/src/suggestions"
 )
@@ -80,7 +80,8 @@ func main() {
 		r := suggestions.Match(settings.Hand, p)
 
 		if len(r) > 0 {
-			fmt.Println(p, r)
+			fmt.Println(p)
+			output.PrintMatchResultsToConsole(r)
 		}
 	}
 }
