@@ -3,19 +3,31 @@ package suggestions
 import (
 	"regexp"
 	"strings"
-	"unicode/utf8"
 
 	"github.com/Khvalin/scrabble-suggestions/src/types"
 )
 
-const ABC = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя"
-
 var words []string
 var wordMap [][]uint8
 
-func countLetters(w string) ([]uint8, bool) {
-	aCode, _ := utf8.DecodeRuneInString(ABC)
-	abcLen := utf8.RuneCountInString(ABC)
+type MatcherInterface interface {
+	countLetters(w string) ([]uint8, bool)
+
+	LoadDict(data string)
+	Match(letters string, patterns []string) [][]types.MatchResult
+}
+
+type Matcher struct {
+	abc []rune
+}
+
+func CreateMatcher(abc string) MatcherInterface {
+	return Matcher{[]rune(abc)}
+}
+
+func (matcher Matcher) countLetters(w string) ([]uint8, bool) {
+	aCode := matcher.abc[0]
+	abcLen := len(matcher.abc)
 	r := make([]uint8, abcLen)
 
 	ok := true
@@ -31,7 +43,7 @@ func countLetters(w string) ([]uint8, bool) {
 	return r, ok
 }
 
-func LoadDict(data string) {
+func (matcher Matcher) LoadDict(data string) {
 	dictWords := strings.Split(data, "\n")
 	words = make([]string, 0, len(dictWords))
 	wordMap = make([][]uint8, 0, len(dictWords))
@@ -39,7 +51,7 @@ func LoadDict(data string) {
 	for _, w := range dictWords {
 		w = strings.ToLower(strings.ReplaceAll(w, "ё", "е"))
 		if len(w) > 0 {
-			if m, ok := countLetters(w); ok {
+			if m, ok := matcher.countLetters(w); ok {
 				words = append(words, string(w))
 				wordMap = append(wordMap, m)
 			}
@@ -48,16 +60,9 @@ func LoadDict(data string) {
 }
 
 // Match func
-func Match(letters, pattern string) []types.MatchResult {
-	var res []types.MatchResult
+func (matcher Matcher) Match(letters string, patterns []string) [][]types.MatchResult {
+	res := make([][]types.MatchResult, len(patterns))
 
-	var re *regexp.Regexp
-	if len(pattern) > 0 {
-		re = regexp.MustCompile(pattern)
-	}
-
-	needle, _ := countLetters(letters + pattern)
-	patternMap, _ := countLetters(pattern)
 	wildCartCount := 0
 	for _, ch := range letters {
 		if ch == '*' {
@@ -65,24 +70,53 @@ func Match(letters, pattern string) []types.MatchResult {
 		}
 	}
 
-	for i, m := range wordMap {
-		var subsCount uint8
-		count := 0
+	lettersMap, _ := matcher.countLetters(letters)
 
-		for ind, c := range m {
-			if c > needle[ind] {
-				count += int(c) - int(needle[ind])
-			} else {
-				subsCount += c - patternMap[ind]
+	filteredIds := make([]int, 0, len(wordMap))
+
+	for i, m := range wordMap {
+		if wildCartCount > 0 {
+			filteredIds = append(filteredIds, i)
+		} else {
+			for j, c := range m {
+				if c > 0 && lettersMap[j] > 0 {
+					filteredIds = append(filteredIds, i)
+					break
+				}
 			}
 		}
+	}
 
-		if count > wildCartCount || subsCount == 0 {
-			continue
+	for k, pattern := range patterns {
+		var re *regexp.Regexp
+		if len(pattern) > 0 {
+			re = regexp.MustCompile(pattern)
 		}
 
-		if re == nil || re.MatchString(words[i]) {
-			res = append(res, types.MatchResult{Word: words[i], SubtitutionsCount: int(subsCount)})
+		needle, _ := matcher.countLetters(letters + pattern)
+		patternMap, _ := matcher.countLetters(pattern)
+
+		for _, ind := range filteredIds {
+			m := wordMap[ind]
+
+			var subsCount uint8
+			count := 0
+
+			for ind, c := range m {
+				if c > needle[ind] {
+					count += int(c) - int(needle[ind])
+				} else {
+					subsCount += c - patternMap[ind]
+				}
+			}
+
+			if count > wildCartCount || subsCount == 0 {
+				continue
+			}
+
+			if re == nil || re.MatchString(words[ind]) {
+				res[k] = append(res[k], types.MatchResult{Word: words[ind], SubtitutionsCount: int(subsCount)})
+			}
 		}
 	}
 

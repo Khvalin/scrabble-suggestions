@@ -18,6 +18,7 @@ import (
 )
 
 type settings struct {
+	Abc      string
 	DictPath string
 	Hand     string
 	Pattern  string
@@ -66,7 +67,9 @@ func main() {
 	settings := loadSettings(os.Args[1])
 	dictData := readFile(settings.DictPath)
 
-	suggestions.LoadDict(string(dictData))
+	matcher := suggestions.CreateMatcher(settings.Abc)
+
+	matcher.LoadDict(string(dictData))
 
 	b := readBoard(settings.Board)
 	variants := board.GetVariants(b)
@@ -76,12 +79,12 @@ func main() {
 		regs = append(regs, "")
 	}
 
-	for _, p := range regs {
-		r := suggestions.Match(settings.Hand, p)
+	r := matcher.Match(settings.Hand, regs)
 
-		if len(r) > 0 {
-			fmt.Println(p)
-			output.PrintMatchResultsToConsole(r)
+	for i, p := range r {
+		if len(p) > 0 {
+			fmt.Println(regs[i])
+			output.PrintMatchResultsToConsole(p)
 		}
 	}
 }
