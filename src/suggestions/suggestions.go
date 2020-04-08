@@ -3,6 +3,7 @@ package suggestions
 import (
 	"regexp"
 	"strings"
+	"unicode"
 
 	"github.com/Khvalin/scrabble-suggestions/src/types"
 )
@@ -33,7 +34,7 @@ func (matcher Matcher) countLetters(w string) ([]uint8, bool) {
 	ok := true
 	for _, ch := range []rune(w) {
 		ind := int(ch) - int(aCode)
-		if ind < 0 || ind >= len(r) {
+		if !unicode.IsLetter(ch) || (ind < 0 || ind >= len(r)) {
 			ok = false
 			continue
 		}

@@ -73,6 +73,11 @@ func main() {
 
 	b := readBoard(settings.Board)
 	variants := board.GetVariants(b)
+
+	// for _, v := range variants {
+	// 	fmt.Println(string(v))
+	// }
+
 	regs := patterns.ConvertVariantsToRegexes(variants, utf8.RuneCountInString(settings.Hand))
 
 	if len(variants) == 0 {

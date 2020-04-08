@@ -20,7 +20,7 @@ func ConvertVariantsToRegexes(variants [][]rune, maxSubstitutions int) []string 
 			l++
 		}
 
-		for r >= 0 && !isLetter(v[r]) {
+		for r > l && !isLetter(v[r]) {
 			r--
 		}
 		if l > r {
@@ -28,7 +28,7 @@ func ConvertVariantsToRegexes(variants [][]rune, maxSubstitutions int) []string 
 		}
 
 		c := 0
-		for i := l; i <= r; i++ {
+		for i := l + 1; i < r; i++ {
 			if !isLetter(v[i]) {
 				v[i] = '.'
 				c++
