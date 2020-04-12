@@ -1,4 +1,5 @@
 {
+  "abc": "абвгдеёжзийклмнопрстуфхцчшщъыьэюя",
   "dictPath": "./dict/rus/russian-nouns.txt",
   "hand": "ЪЕВОТЕКД",
   "pattern": "^(.)*е.я(.)*$",

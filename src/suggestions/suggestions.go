@@ -1,10 +1,10 @@
 package suggestions
 
 import (
-	"regexp"
 	"strings"
 	"unicode"
 
+	"github.com/Khvalin/scrabble-suggestions/src/patterns"
 	"github.com/Khvalin/scrabble-suggestions/src/types"
 )
 
@@ -15,7 +15,7 @@ type MatcherInterface interface {
 	countLetters(w string) ([]uint8, bool)
 
 	LoadDict(data string)
-	Match(letters string, patterns []string) [][]types.MatchResult
+	Match(letters string, patterns [][]rune) [][]types.MatchResult
 }
 
 type Matcher struct {
@@ -61,8 +61,8 @@ func (matcher Matcher) LoadDict(data string) {
 }
 
 // Match func
-func (matcher Matcher) Match(letters string, patterns []string) [][]types.MatchResult {
-	res := make([][]types.MatchResult, len(patterns))
+func (matcher Matcher) Match(letters string, pats [][]rune) [][]types.MatchResult {
+	res := make([][]types.MatchResult, len(pats))
 
 	wildCartCount := 0
 	for _, ch := range letters {
@@ -88,14 +88,10 @@ func (matcher Matcher) Match(letters string, patterns []string) [][]types.MatchR
 		}
 	}
 
-	for k, pattern := range patterns {
-		var re *regexp.Regexp
-		if len(pattern) > 0 {
-			re = regexp.MustCompile(pattern)
-		}
+	for k, pat := range pats {
 
-		needle, _ := matcher.countLetters(letters + pattern)
-		patternMap, _ := matcher.countLetters(pattern)
+		needle, _ := matcher.countLetters(letters + string(pat))
+		patternMap, _ := matcher.countLetters(string(pat))
 
 		for _, ind := range filteredIds {
 			m := wordMap[ind]
@@ -115,7 +111,12 @@ func (matcher Matcher) Match(letters string, patterns []string) [][]types.MatchR
 				continue
 			}
 
-			if re == nil || re.MatchString(words[ind]) {
+			f := len(pat) == 0
+			if !f {
+				f, _ = patterns.MatchPattern(pat, words[ind])
+			}
+
+			if f {
 				res[k] = append(res[k], types.MatchResult{Word: words[ind], SubtitutionsCount: int(subsCount)})
 			}
 		}

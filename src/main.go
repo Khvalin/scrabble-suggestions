@@ -78,17 +78,17 @@ func main() {
 	// 	fmt.Println(string(v))
 	// }
 
-	regs := patterns.ConvertVariantsToRegexes(variants, utf8.RuneCountInString(settings.Hand))
+	pats := patterns.ConvertVariantsToPatterns(variants, utf8.RuneCountInString(settings.Hand))
 
 	if len(variants) == 0 {
-		regs = append(regs, "")
+		pats = append(pats, []rune{})
 	}
 
-	r := matcher.Match(settings.Hand, regs)
+	r := matcher.Match(settings.Hand, pats)
 
 	for i, p := range r {
 		if len(p) > 0 {
-			fmt.Println(regs[i])
+			fmt.Printf("%s\n", string(pats[i]))
 			output.PrintMatchResultsToConsole(p)
 		}
 	}
