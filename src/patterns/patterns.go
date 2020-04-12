@@ -6,7 +6,7 @@ import (
 	"unicode"
 )
 
-func isLetter(ch rune) bool {
+func IsLetter(ch rune) bool {
 	return unicode.IsLetter(ch)
 	//return ch != '#'
 }
@@ -16,11 +16,11 @@ func ConvertVariantsToRegexes(variants [][]rune, maxSubstitutions int) []string 
 
 	for _, v := range variants {
 		l, r := 0, len(v)-1
-		for l < len(v)-1 && !isLetter(v[l]) {
+		for l < len(v)-1 && !IsLetter(v[l]) {
 			l++
 		}
 
-		for r > l && !isLetter(v[r]) {
+		for r > l && !IsLetter(v[r]) {
 			r--
 		}
 		if l > r {
@@ -29,7 +29,7 @@ func ConvertVariantsToRegexes(variants [][]rune, maxSubstitutions int) []string 
 
 		c := 0
 		for i := l + 1; i < r; i++ {
-			if !isLetter(v[i]) {
+			if !IsLetter(v[i]) {
 				v[i] = '.'
 				c++
 			}
@@ -53,58 +53,52 @@ func ConvertVariantsToRegexes(variants [][]rune, maxSubstitutions int) []string 
 	return res
 }
 
-func ConvertVariantsToPatterns(variants [][]rune, maxSubstitutions int) [][]rune {
-	var res = make([][]rune, 0, len(variants))
+func ConvertVariantToPattern(variant []rune, maxSubstitutions int) []rune {
+	v := append([]rune{}, variant...)
 
-	for i := range variants {
-		v := append([]rune{}, variants[i]...)
-
-		l, r := 0, len(v)-1
-		for l < len(v)-1 && !isLetter(v[l]) {
-			l++
-		}
-
-		for r > l && !isLetter(v[r]) {
-			r--
-		}
-		if l > r {
-			continue
-		}
-
-		c := 0
-		for i := l + 1; i < r; i++ {
-			if !isLetter(v[i]) {
-				v[i] = '.'
-				c++
-			}
-		}
-
-		if c > maxSubstitutions {
-			continue
-		}
-
-		minLen := r - l + 1
-
-		if c == 0 {
-			minLen++
-		}
-
-		for j := 0; j < len(v); j++ {
-			if v[j] == '#' {
-				v[j] = '.'
-			}
-		}
-
-		res = append(res, v)
+	l, r := 0, len(v)-1
+	for l < len(v)-1 && !IsLetter(v[l]) {
+		l++
 	}
 
-	return res
+	for r > l && !IsLetter(v[r]) {
+		r--
+	}
+	if l > r {
+		return nil
+	}
+
+	c := 0
+	for i := l + 1; i < r; i++ {
+		if !IsLetter(v[i]) {
+			v[i] = '.'
+			c++
+		}
+	}
+
+	if c > maxSubstitutions {
+		return nil
+	}
+
+	minLen := r - l + 1
+
+	if c == 0 {
+		minLen++
+	}
+
+	for j := 0; j < len(v); j++ {
+		if v[j] == '#' {
+			v[j] = '.'
+		}
+	}
+
+	return v
 }
 
 func MatchPattern(pattern []rune, word string) (bool, int) {
 	p := []rune(pattern)
 	s := 0
-	for s < len(p) && !isLetter(p[s]) {
+	for s < len(p) && !IsLetter(p[s]) {
 		s++
 	}
 
@@ -114,7 +108,7 @@ func MatchPattern(pattern []rune, word string) (bool, int) {
 	}
 
 	e := len(p) - 1
-	for e >= 0 && !isLetter(p[e]) {
+	for e >= 0 && !IsLetter(p[e]) {
 		e--
 	}
 
@@ -146,7 +140,7 @@ outer:
 			if k >= len(p) {
 				break outer
 			}
-			if isLetter(p[k]) && p[k] != w[j] {
+			if IsLetter(p[k]) && p[k] != w[j] {
 				continue outer
 			}
 		}

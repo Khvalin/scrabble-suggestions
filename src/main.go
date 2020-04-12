@@ -4,7 +4,6 @@ import (
 	// standard library
 
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -15,6 +14,7 @@ import (
 	"github.com/Khvalin/scrabble-suggestions/src/output"
 	"github.com/Khvalin/scrabble-suggestions/src/patterns"
 	"github.com/Khvalin/scrabble-suggestions/src/suggestions"
+	"github.com/Khvalin/scrabble-suggestions/src/types"
 )
 
 type settings struct {
@@ -78,18 +78,22 @@ func main() {
 	// 	fmt.Println(string(v))
 	// }
 
-	pats := patterns.ConvertVariantsToPatterns(variants, utf8.RuneCountInString(settings.Hand))
+	pats := make([]types.Variant, 0, len(variants))
+	for _, v := range variants {
+		p := patterns.ConvertVariantToPattern(v.BoardLine, utf8.RuneCountInString(settings.Hand))
+		if len(p) == 0 {
+			continue
+		}
 
-	if len(variants) == 0 {
-		pats = append(pats, []rune{})
+		v.Pattern = p
+		pats = append(pats, v)
+	}
+
+	if len(pats) == 0 {
+		pats = append(pats, types.Variant{})
 	}
 
 	r := matcher.Match(settings.Hand, pats)
 
-	for i, p := range r {
-		if len(p) > 0 {
-			fmt.Printf("%s\n", string(pats[i]))
-			output.PrintMatchResultsToConsole(p)
-		}
-	}
+	output.PrintFinalVariantsToConsole(r)
 }

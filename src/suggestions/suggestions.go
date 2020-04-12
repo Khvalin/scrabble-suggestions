@@ -15,7 +15,7 @@ type MatcherInterface interface {
 	countLetters(w string) ([]uint8, bool)
 
 	LoadDict(data string)
-	Match(letters string, patterns [][]rune) [][]types.MatchResult
+	Match(letters string, variants []types.Variant) []types.Variant
 }
 
 type Matcher struct {
@@ -61,8 +61,8 @@ func (matcher Matcher) LoadDict(data string) {
 }
 
 // Match func
-func (matcher Matcher) Match(letters string, pats [][]rune) [][]types.MatchResult {
-	res := make([][]types.MatchResult, len(pats))
+func (matcher Matcher) Match(letters string, variants []types.Variant) []types.Variant {
+	//	res := make([]types.Variant, len(variants))
 
 	wildCartCount := 0
 	for _, ch := range letters {
@@ -88,10 +88,9 @@ func (matcher Matcher) Match(letters string, pats [][]rune) [][]types.MatchResul
 		}
 	}
 
-	for k, pat := range pats {
-
-		needle, _ := matcher.countLetters(letters + string(pat))
-		patternMap, _ := matcher.countLetters(string(pat))
+	for k, v := range variants {
+		needle, _ := matcher.countLetters(letters + string(v.Pattern))
+		patternMap, _ := matcher.countLetters(string(v.Pattern))
 
 		for _, ind := range filteredIds {
 			m := wordMap[ind]
@@ -112,13 +111,13 @@ func (matcher Matcher) Match(letters string, pats [][]rune) [][]types.MatchResul
 			}
 
 			offset := -1
-			f := len(pat) == 0
+			f := len(v.Pattern) == 0
 			if !f {
-				f, offset = patterns.MatchPattern(pat, words[ind])
+				f, offset = patterns.MatchPattern(v.Pattern, words[ind])
 			}
 
 			if f {
-				res[k] = append(res[k], types.MatchResult{
+				variants[k].Matches = append(variants[k].Matches, types.MatchResult{
 					Word:              words[ind],
 					SubtitutionsCount: int(subsCount),
 					Offset:            offset})
@@ -126,5 +125,5 @@ func (matcher Matcher) Match(letters string, pats [][]rune) [][]types.MatchResul
 		}
 	}
 
-	return res
+	return variants
 }

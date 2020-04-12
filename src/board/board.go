@@ -2,6 +2,8 @@ package board
 
 import (
 	"unicode"
+
+	"github.com/Khvalin/scrabble-suggestions/src/types"
 )
 
 func isLetter(ch rune) bool {
@@ -9,8 +11,8 @@ func isLetter(ch rune) bool {
 	//return ch != '#'
 }
 
-func wordMaskToVariants(borders [][2]int, line []rune) [][]rune {
-	res := make([][]rune, 0, len(borders)>>1)
+func wordMaskToVariants(borders [][2]int, line []rune) []types.Variant {
+	res := make([]types.Variant, 0, len(borders)>>1)
 	prev := -1
 	softBorders := make([][2]int, len(borders))
 	for i, pair := range borders {
@@ -34,18 +36,18 @@ func wordMaskToVariants(borders [][2]int, line []rune) [][]rune {
 	}
 
 	for i, p := range softBorders {
-		res = append(res, append([]rune{}, line[p[0]:p[1]]...))
+		res = append(res, types.Variant{BoardLine: append([]rune{}, line[p[0]:p[1]]...)})
 
 		for j := i + 1; j < len(softBorders); j++ {
-			res = append(res, append([]rune{}, line[p[0]:softBorders[j][1]]...))
+			res = append(res, types.Variant{BoardLine: append([]rune{}, line[p[0]:softBorders[j][1]]...)})
 		}
 	}
 
 	return res
 }
 
-func GetVariants(b [][]rune) [][]rune {
-	r := [][]rune{}
+func GetVariants(b [][]rune) []types.Variant {
+	r := []types.Variant{}
 
 	//horizontal
 	for _, row := range b {
