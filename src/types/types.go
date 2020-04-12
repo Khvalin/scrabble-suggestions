@@ -5,6 +5,7 @@ import "fmt"
 type MatchResult struct {
 	Word              string
 	SubtitutionsCount int
+	Offset            int
 }
 
 func (m MatchResult) String() string {

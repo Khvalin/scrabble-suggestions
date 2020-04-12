@@ -10,7 +10,7 @@ func isLetter(ch rune) bool {
 }
 
 func wordMaskToVariants(borders [][2]int, line []rune) [][]rune {
-	res := make([][]rune, len(borders)>>1)
+	res := make([][]rune, 0, len(borders)>>1)
 	prev := -1
 	softBorders := make([][2]int, len(borders))
 	for i, pair := range borders {
@@ -35,17 +35,6 @@ func wordMaskToVariants(borders [][2]int, line []rune) [][]rune {
 
 	for i, p := range softBorders {
 		res = append(res, append([]rune{}, line[p[0]:p[1]]...))
-		if len(softBorders) == 1 {
-			continue
-		}
-
-		if p[0] < borders[i][0] {
-			//	res = append(res, append([]rune{}, line[p[0]:borders[i][1]]...))
-		}
-
-		if p[1] > borders[i][1] {
-			//	res = append(res, append([]rune{}, line[borders[i][0]:p[1]]...))
-		}
 
 		for j := i + 1; j < len(softBorders); j++ {
 			res = append(res, append([]rune{}, line[p[0]:softBorders[j][1]]...))

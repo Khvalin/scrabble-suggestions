@@ -111,13 +111,17 @@ func (matcher Matcher) Match(letters string, pats [][]rune) [][]types.MatchResul
 				continue
 			}
 
+			offset := -1
 			f := len(pat) == 0
 			if !f {
-				f, _ = patterns.MatchPattern(pat, words[ind])
+				f, offset = patterns.MatchPattern(pat, words[ind])
 			}
 
 			if f {
-				res[k] = append(res[k], types.MatchResult{Word: words[ind], SubtitutionsCount: int(subsCount)})
+				res[k] = append(res[k], types.MatchResult{
+					Word:              words[ind],
+					SubtitutionsCount: int(subsCount),
+					Offset:            offset})
 			}
 		}
 	}
