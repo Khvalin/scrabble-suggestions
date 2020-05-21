@@ -1,9 +1,11 @@
 package main
 
 import (
+	"path"
 	// standard library
 
 	"encoding/json"
+	"flag"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -16,6 +18,12 @@ import (
 	"github.com/Khvalin/scrabble-suggestions/src/suggestions"
 	"github.com/Khvalin/scrabble-suggestions/src/types"
 )
+
+var boardFilePath = flag.String("board", "./games/current.json", "")
+var scoresFilePath = flag.String("scores", "./config/scores.json", "")
+
+type scores struct {
+}
 
 type settings struct {
 	Abc      string
@@ -52,6 +60,15 @@ func readFile(fileName string) []byte {
 	return dat
 }
 
+func loadScores(scoresFilePath string) *scores {
+	scoresData := readFile(scoresFilePath)
+
+	var s scores
+	e := json.Unmarshal(scoresData, &s)
+	check(e)
+	return &s
+}
+
 func loadSettings(settingsFileName string) *settings {
 	settingsData := readFile(settingsFileName)
 
@@ -64,8 +81,13 @@ func loadSettings(settingsFileName string) *settings {
 }
 
 func main() {
-	settings := loadSettings(os.Args[1])
-	dictData := readFile(settings.DictPath)
+	pwd, err := os.Getwd()
+	check(err)
+
+	scoresData := loadScores(path.Join(pwd, *scoresFilePath))
+	_ = scoresData
+	settings := loadSettings(path.Join(pwd, *boardFilePath))
+	dictData := readFile(path.Join(pwd, settings.DictPath))
 
 	matcher := suggestions.CreateMatcher(settings.Abc)
 
